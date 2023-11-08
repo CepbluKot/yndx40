@@ -6,47 +6,44 @@ arr2 = list(map(int, input().split()))
 
 
 def merge(arr1: list, arr2: list):
-    merged = []
+    if arr1 and arr2:
+        merged = [0] * (n1+n2)
 
-    arr1_id = 0
-    arr2_id = 0
+        arr1_id = 0
+        arr2_id = 0
 
-    for _ in range(n1 + n2):
-        
-        if arr1_id <= n1 - 1 and arr2_id <= n2 - 1 :
-            curr_elem_arr_1 = arr1[arr1_id]
-            curr_elem_arr_2 = arr2[arr2_id]
-            
-            if curr_elem_arr_1 <= curr_elem_arr_2:
-                merged.append(curr_elem_arr_1)
+        while (arr1_id < len(arr1)) and (arr2_id < len(arr2)):
+            arr1_selected_elem = arr1[arr1_id]
+            arr2_selected_elem = arr2[arr2_id]
+
+            if arr1_selected_elem <= arr2_selected_elem:
+                merged[arr1_id + arr2_id] = arr1_selected_elem
                 arr1_id += 1
-
             else:
-                merged.append(curr_elem_arr_2)
+                merged[arr1_id + arr2_id] = arr2_selected_elem
                 arr2_id += 1
 
-                if arr2_id == n2 - 1:
-                    pass
+        stop_id = arr1_id + arr2_id
+        if arr1_id < len(arr1):
+            
+            for elem in arr1[arr1_id:]:
+                merged[stop_id] = elem
+                stop_id += 1
 
-                    # do it reqursive way
+        elif arr2_id < len(arr2):
+            for elem in arr2[arr2_id:]:
+                merged[stop_id] = elem
+                stop_id += 1
 
-        else:
-            if arr1_id == n1 - 1 and arr2_id < n2 - 1 :
-                merged.extend(arr2[arr2_id:])
+        return merged
 
-            elif arr1_id < n1 - 1 and arr2_id == n2 - 1 :
-                merged.extend(arr1[arr1_id:])
-
-            return merged
+    elif arr1:
+        return arr1
     
-        # elif arr1_id == n1  and arr2_id < n2 :
-        #     merged.extend(arr2[arr2_id:])
-        #     arr2_id = n2 
-
-        # elif arr1_id < n1  and arr2_id == n2 :
-        #     merged.extend(arr2[arr1_id:])
-        #     arr1_id = n1 
-
-    return merged
+    elif arr2:
+        return arr2
+    
+    else:
+        return []
 
 print(*merge(arr1, arr2))
