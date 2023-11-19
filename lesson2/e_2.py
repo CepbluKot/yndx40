@@ -1,4 +1,4 @@
-
+from random import randint
 # s = input()
 # s = 'vpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdq'
 # s1 = 'a'*20 + 'vpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdqznunkvpkuywezpuqhsgdq'
@@ -115,20 +115,37 @@ def make_zfunc_rev(s: str, pref_str: str=None, from_id: int=0, to_id: int=None):
         return z_func_res
 
 
-s = '111211'
-ss = '2'
+s = '1211211'
+# ss = '2'
+# s = str(randint(1, 99999999999))
+# a = make_zfunc(s[::-1], from_id=0, to_id=len(s))
+# b = make_zfunc_rev(s, from_id=0, to_id=len(s))
 
-print(make_zfunc(s))
-print(make_zfunc(s[::-1]))
-print(make_zfunc(s[::-1], from_id=0, to_id=len(s)-2, pref_str=ss))
-print(make_zfunc_rev(s, from_id=0, to_id=len(s)-2, pref_str=ss))
 
-def find_all_subpolyndroms(s: str, from_id:int=0, to_id:int=0):
-    middle = (from_id - to_id) // 2
+def find_all_subpolyndroms(s: str, from_id:int=0, to_id:int=None):
+    if to_id is None:
+        to_id = len(s) - 1
+
+    middle = (to_id - from_id) // 2
+
+
+    pref = s[middle+1:] # r part
+    zfunc_res = make_zfunc(s, from_id=0, to_id=middle, pref_str=pref)
     
+    max_gamma_val = max(zfunc_res)
+    max_gamma_id = zfunc_res.index(max_gamma_val)
+    
+    pref = s[max_gamma_id:max_gamma_id+max_gamma_val] # reversed l part
+    zfunc_res = make_zfunc_rev(s, from_id=len(s)-1-max_gamma_id-1, to_id=len(s)-1-max_gamma_id, pref_str=pref)
+    
+    max_beta_val = max(zfunc_res)
+    max_beta_id = len(zfunc_res)-1 - zfunc_res.index(max_beta_val)
+
+    print(max_gamma_id, max_beta_id)
+
+    # find_all_subpolyndroms(s, from_id, middle, first_time=False)
+    # find_all_subpolyndroms(s, middle+1, to_id, first_time=False)
 
 
+find_all_subpolyndroms(s)
 
-
-    find_all_subpolyndroms(s, from_id, middle, first_time=False)
-    find_all_subpolyndroms(s, middle, to_id, first_time=False)
