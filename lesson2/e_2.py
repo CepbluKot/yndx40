@@ -44,7 +44,10 @@ def make_zfunc(s: str, pref_str: str=None, from_id: int=0, to_id: int=None):
             z_func_res[fake_coords] = min(z_func_res[fake_coords-l_elem_id], l_elem_id + z_func_res[l_elem_id] - fake_coords)
             z_func_res[fake_coords] = max(z_func_res[fake_coords], 0)
             
-            while z_func_res[fake_coords] < len(s)-from_id - fake_coords and z_func_res[fake_coords] < len(pref_str) and s[real_coords + z_func_res[fake_coords]] == pref_str[from_id + z_func_res[fake_coords]] :
+            wha1 = real_coords + z_func_res[fake_coords]
+            wha2 = z_func_res[fake_coords]
+
+            while z_func_res[fake_coords] < len(s)-from_id - fake_coords and z_func_res[fake_coords] < len(pref_str) and s[real_coords + z_func_res[fake_coords]] == pref_str[z_func_res[fake_coords]] :
                 # find using lin search
                 z_func_res[fake_coords] += 1
             
@@ -76,11 +79,11 @@ def make_zfunc_rev(s: str, pref_str: str=None, from_id: int=0, to_id: int=None):
             
 
             wha1 = len(s) - 1 - (real_coords + z_func_res[fake_coords])
-            wha2 = len(s) - 1 - z_func_res[fake_coords]
+            wha2 = len(s) - 1 -  (from_id + z_func_res[fake_coords])
             while z_func_res[fake_coords] < len(s)-from_id - fake_coords and s[len(s) - 1 - (real_coords + z_func_res[fake_coords])] == s[len(s) - 1 -  (from_id + z_func_res[fake_coords])]:
                 # find using lin search
                 wha1 = len(s) - 1 - (real_coords + z_func_res[fake_coords])
-                wha2 = len(s) - 1 - z_func_res[fake_coords]
+                wha2 = len(s) - 1 -  (from_id + z_func_res[fake_coords])
 
                 z_func_res[fake_coords] += 1
             
@@ -96,9 +99,14 @@ def make_zfunc_rev(s: str, pref_str: str=None, from_id: int=0, to_id: int=None):
 
             z_func_res[fake_coords] = min(z_func_res[fake_coords-l_elem_id], l_elem_id + z_func_res[l_elem_id] - fake_coords)
             z_func_res[fake_coords] = max(z_func_res[fake_coords], 0)
-            
-            while z_func_res[fake_coords] < len(s)-from_id - fake_coords and z_func_res[fake_coords] < len(pref_str) and s[len(s) - 1-real_coords + z_func_res[fake_coords]] == pref_str[len(s) - 1- (from_id + z_func_res[fake_coords])] :
+
+            wha1 = len(s) - 1-(real_coords + z_func_res[fake_coords])
+            wha2 = z_func_res[fake_coords]
+
+            while z_func_res[fake_coords] < len(s)-from_id - fake_coords and z_func_res[fake_coords] < len(pref_str) and s[len(s) - 1-real_coords + z_func_res[fake_coords]] == pref_str[z_func_res[fake_coords]] :
                 # find using lin search
+                wha1 = len(s) - 1-(real_coords + z_func_res[fake_coords])
+                wha2 = z_func_res[fake_coords]
                 z_func_res[fake_coords] += 1
             
             if l_elem_id + z_func_res[l_elem_id] < fake_coords + z_func_res[fake_coords]:
@@ -108,12 +116,12 @@ def make_zfunc_rev(s: str, pref_str: str=None, from_id: int=0, to_id: int=None):
 
 
 s = '111211'
-ss = '321'
+ss = '2'
 
 print(make_zfunc(s))
 print(make_zfunc(s[::-1]))
-print(make_zfunc(s[::-1], from_id=0, to_id=len(s)-2))
-print(make_zfunc_rev(s, from_id=0, to_id=len(s)-2))
+print(make_zfunc(s[::-1], from_id=0, to_id=len(s)-2, pref_str=ss))
+print(make_zfunc_rev(s, from_id=0, to_id=len(s)-2, pref_str=ss))
 
 def find_all_subpolyndroms(s: str, from_id:int=0, to_id:int=0):
     middle = (from_id - to_id) // 2
