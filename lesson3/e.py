@@ -7,34 +7,34 @@ class CityTimes:
     fastest_from = None
 
 
+class Point:
+    visited = False
+    dist = math.inf
+    from_point = None
+
+
 def deikstraSearchFast(
     graph: dict,
-    point_from: str,
-    point_to: str,
+    point_from: str
 ):
     points_data = {}
-    
+    max_dist = 0
+    point_w_max_dist = None
     
     pts_heap = []
     heapq.heapify(pts_heap)
 
 
     for point in graph:
-        new_point = CityTimes()
+        new_point = Point()
         if point == point_from:
-            new_point.arrival_time = 0
-
+            if not point_from in graph[point]:
+                new_point.dist = 0
+            else:
+                new_point.dist = graph[point][point_from]
+        
         points_data[point] = new_point
-        heapq.heappush(pts_heap, (new_point.arrival_time, point))
-
-        for neighbor_point in graph[point]:
-            new_point = CityTimes()
-            
-            if neighbor_point not in points_data:
-                points_data[neighbor_point] = new_point
-                heapq.heappush(pts_heap, (new_point.arrival_time, neighbor_point))
-
-
+        heapq.heappush(pts_heap, (new_point.dist, point))
 
 
     all_pts_checked = False
@@ -44,27 +44,27 @@ def deikstraSearchFast(
             all_pts_checked = False
             curr_point = heapq.heappop(pts_heap)[1]
             if not points_data[curr_point].visited:
+                
 
-                if curr_point in graph:
-                    for neighbor in graph[curr_point]:
-                        for neighbor_raise in graph[curr_point][neighbor]:
+                for neighbor in graph[curr_point]:
+                    curr_dist = points_data[curr_point].dist + graph[curr_point][neighbor]
 
-                            departure_time = neighbor_raise[0]
-                            arrival_time = neighbor_raise[1]
+                    if curr_dist < points_data[neighbor].dist:
+                        if curr_dist > max_dist:
+                            max_dist = curr_dist
+                            point_w_max_dist = neighbor
+                        
+                        points_data[neighbor].dist = curr_dist
+                        points_data[neighbor].from_point = curr_point
+                        heapq.heappush(pts_heap, (points_data[neighbor].dist, neighbor))
 
-                            if departure_time >= points_data[curr_point].arrival_time:
-                                if arrival_time < points_data[neighbor].arrival_time:
-                                    points_data[neighbor].arrival_time = arrival_time
-                                    points_data[neighbor].from_point = curr_point
-                                    heapq.heappush(pts_heap, (points_data[neighbor].arrival_time, neighbor))
-
-                    
-                    points_data[curr_point].visited = True
+                
+                points_data[curr_point].visited = True
             
         else:
             all_pts_checked = True
 
-    return points_data
+    return points_data, max_dist, point_w_max_dist
 
 
 
@@ -73,7 +73,7 @@ def time_searcher(roads: dict, city_info: dict, path: dict={}, times: dict={}, e
     
     neighbors = roads[end_city]
 
-    if len(neighbors) > 1:
+    if len(neighbors) > 1 or end_city == '1':
         for neighbor in neighbors:
             
             if neighbor != end_city and neighbor != '1':
@@ -214,9 +214,24 @@ for _ in range( N-1 ):
     roads[to_id][from_id] = dist
 
 res = time_searcher(roads, city_info)
-res
+
+graph = {}
+for road in res:
+    from_city, to_city = road
+    
+    if from_city not in graph:
+        graph[from_city] = {}
+    
+    if to_city not in graph:
+        graph[to_city] = {}
+
+    graph[from_city][to_city] = res[road].fastest_time_to_get_here
+    graph[to_city][from_city] = res[road].fastest_time_to_get_here
+
+print(graph)
 # # if R < N**2:
-# R = deikstraSearchFast(graph, D, V)
+R, max_dist, point_w_max_dist = deikstraSearchFast(graph, '1')
+print(max_dist, point_w_max_dist)
 # # else:
 # #     R = deikstraSearchSlow(graph, S, F)
 
