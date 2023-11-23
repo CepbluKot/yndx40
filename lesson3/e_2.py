@@ -174,13 +174,22 @@ for road in res:
 
     graph[from_city][to_city] = res[road]
 
-pt = None
+max_pt = None
 max_d = 0
+max_pts_data = None
 for city_id in range( 2,N+1 ):
     points_data = deikstraSearchFast(graph, str(city_id))
     if max_d < points_data['1'].dist:
+        max_pts_data = points_data
         max_d = points_data['1'].dist
-        pt = str(city_id)
+        max_pt = str(city_id)
 
 
-print(max_d, pt)
+restored_path = [1]
+curr_point = max_pts_data['1'].from_point
+while curr_point:
+    restored_path.append(curr_point)
+    curr_point = max_pts_data[curr_point].from_point
+
+print(max_d)
+print(*restored_path[::-1])
