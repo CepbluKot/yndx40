@@ -1,6 +1,6 @@
 import math, time
-import heapq
-
+import heapq, sys
+sys.setrecursionlimit(2000+1)
 
 class Point:
     visited = False
@@ -57,11 +57,13 @@ def find_time_to_neighbors(origin_city, from_city, prev_time: int, speed: int, r
     if from_city != '1':
         for to_city in roads[from_city]:
             if to_city != from_city and to_city != origin_city: # check if dead end
-                if (origin_city, to_city) not in times:
-                    times[(origin_city, to_city)] = prev_time + roads[from_city][to_city] / speed
+                if origin_city not in times:
+                    times[origin_city] = {}
+                if to_city not in times[origin_city]:
+                    times[origin_city][to_city] = prev_time + roads[from_city][to_city] / speed
 
 
-                    find_time_to_neighbors(origin_city, to_city, times[(origin_city, to_city)], speed, roads, times)
+                    find_time_to_neighbors(origin_city, to_city, times[origin_city][to_city], speed, roads, times)
 
 
 def time_searcher(roads: dict, city_info: dict, times: dict={}, visited_cities: set=set()):
@@ -76,10 +78,12 @@ def time_searcher(roads: dict, city_info: dict, times: dict={}, visited_cities: 
             prev_time = 0
 
             for to_city in roads[from_city]:
-                if (from_city, to_city) not in times:         
-                    times[(from_city, to_city)] = prep_time + roads[from_city][to_city] / speed
+                if from_city not in times:
+                    times[from_city] = {}
+                if to_city not in times[from_city]:         
+                    times[from_city][to_city] = prep_time + roads[from_city][to_city] / speed
                     
-                    prev_time = times[(from_city, to_city)]
+                    prev_time = times[from_city][to_city]
             
                     find_time_to_neighbors(from_city, to_city, prev_time, speed, roads, times)
 
@@ -115,38 +119,48 @@ for _ in range( N-1 ):
         roads[from_id] = {}
 
     if to_id not in roads[from_id]:
-        roads[from_id][to_id] = []
+        roads[from_id][to_id] = None
 
     if to_id not in roads:
         roads[to_id] = {}
 
     if from_id not in roads[to_id]:
-        roads[to_id][from_id] = []
+        roads[to_id][from_id] = None
 
 
     roads[from_id][to_id] = dist
     roads[to_id][from_id] = dist
     
 res = time_searcher(roads, city_info)
+new_res = {}
 
-
-graph = {}
-for city_id in range(1,N+1):
-    if str(city_id) not in graph:
-        graph[str(city_id)] = {}
-
-for road in res:
-    from_city, to_city = road
+from_city_keys = list(res.keys())
+while from_city_keys:
+    from_city = from_city_keys.pop()
+    to_city_keys = list(res[from_city].keys())
     
+    while to_city_keys:
+        to_city = to_city_keys.pop()
+        
+        
+        if to_city not in new_res:
+            new_res[to_city] = {}
+        
+        new_res[to_city][from_city] = res[from_city][to_city]
+        del res[from_city][to_city]
+        # if not res[from_city]:
+        #     del res[from_city]
 
-    graph[to_city][from_city] = res[road]
-
+for city_id in range( 1,N+1 ):
+    city_id = str(city_id)
+    if city_id not in  new_res:
+        new_res[city_id] = {}
 
 max_pt = None
 max_d = 0
 
 
-points_data = deikstraSearch(graph, '1')
+points_data = deikstraSearch(new_res, '1')
 for point in points_data:
     if max_d < points_data[point].dist:
 
@@ -162,3 +176,4 @@ while curr_point:
 
 print(max_d)
 print(*restored_path)
+print('done in ', time.time()-start)
