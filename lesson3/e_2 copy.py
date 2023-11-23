@@ -8,56 +8,46 @@ class Point:
     from_point = None
 
 
-def deikstraSearchFast(
+def deikstraSearch(
     graph: dict,
-    point_from: str
+    point_from: str,
+
 ):
     points_data = {}
-    # max_dist = 0
-
-    pts_heap = []
-    heapq.heapify(pts_heap)
-
 
     for point in graph:
         new_point = Point()
         if point == point_from:
-            if not point_from in graph[point]:
-                new_point.dist = 0
-            else:
-                new_point.dist = graph[point][point_from]
+            new_point.dist = 0
         
         points_data[point] = new_point
-        heapq.heappush(pts_heap, (new_point.dist, point))
-
 
     all_pts_checked = False
     while not all_pts_checked:
         all_pts_checked = True
-        if pts_heap:
-            all_pts_checked = False
-            curr_point = heapq.heappop(pts_heap)[1]
-            if not points_data[curr_point].visited:
-                
 
-                for neighbor in graph[curr_point]:
-                    curr_dist = points_data[curr_point].dist + graph[curr_point][neighbor]
+        for point in points_data:
+            if not points_data[point].visited:
+                curr_point = point
+                all_pts_checked = False
+                break
 
-                    if curr_dist < points_data[neighbor].dist:
-                        # if curr_dist > max_dist:
-                        #     max_dist = curr_dist
-                        #     point_w_max_dist = neighbor
-                        
-                        points_data[neighbor].dist = curr_dist
-                        points_data[neighbor].from_point = curr_point
-                        heapq.heappush(pts_heap, (points_data[neighbor].dist, neighbor))
+        if not all_pts_checked:
 
-                
-                points_data[curr_point].visited = True
+            for point in points_data:
+                if points_data[point].dist < points_data[curr_point].dist and not points_data[point].visited:
+                    curr_point = point
+
+            for neighbor in graph[curr_point]:
+                curr_dist = points_data[curr_point].dist + graph[curr_point][neighbor]
+
+                if curr_dist < points_data[neighbor].dist:
+                    points_data[neighbor].dist = curr_dist
+                    points_data[neighbor].from_point = curr_point
+
             
-        else:
-            all_pts_checked = True
-
+            points_data[curr_point].visited = True
+        
     return points_data
 
 
@@ -140,33 +130,35 @@ for _ in range( N-1 ):
 res = time_searcher(roads, city_info)
 
 
-graph = {'1':{}}
+graph = {}
+for city_id in range(1,N+1):
+    if str(city_id) not in graph:
+        graph[str(city_id)] = {}
+
 for road in res:
     from_city, to_city = road
     
-    if from_city not in graph:
-        graph[from_city] = {}
-    
 
-    graph[from_city][to_city] = res[road]
+    graph[to_city][from_city] = res[road]
 
-# print('done in ', time.time() - start )
+
 max_pt = None
 max_d = 0
-max_pts_data = None
-for city_id in range( 2,N+1 ):
-    points_data = deikstraSearchFast(graph, str(city_id))
-    if max_d < points_data['1'].dist:
-        max_pts_data = points_data
-        max_d = points_data['1'].dist
-        max_pt = str(city_id)
 
 
-restored_path = [1]
-curr_point = max_pts_data['1'].from_point
+points_data = deikstraSearch(graph, '1')
+for point in points_data:
+    if max_d < points_data[point].dist:
+
+        max_d = points_data[point].dist
+        max_pt = point
+
+
+restored_path = [max_pt]
+curr_point = points_data[max_pt].from_point
 while curr_point:
     restored_path.append(curr_point)
-    curr_point = max_pts_data[curr_point].from_point
+    curr_point = points_data[curr_point].from_point
 
 print(max_d)
-print(*restored_path[::-1])
+print(*restored_path)
