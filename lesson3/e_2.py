@@ -13,9 +13,8 @@ def deikstraSearchFast(
     point_from: str
 ):
     points_data = {}
-    max_dist = 0
-    point_w_max_dist = None
-    
+    # max_dist = 0
+
     pts_heap = []
     heapq.heapify(pts_heap)
 
@@ -45,9 +44,9 @@ def deikstraSearchFast(
                     curr_dist = points_data[curr_point].dist + graph[curr_point][neighbor]
 
                     if curr_dist < points_data[neighbor].dist:
-                        if curr_dist > max_dist:
-                            max_dist = curr_dist
-                            point_w_max_dist = neighbor
+                        # if curr_dist > max_dist:
+                        #     max_dist = curr_dist
+                        #     point_w_max_dist = neighbor
                         
                         points_data[neighbor].dist = curr_dist
                         points_data[neighbor].from_point = curr_point
@@ -59,7 +58,7 @@ def deikstraSearchFast(
         else:
             all_pts_checked = True
 
-    return points_data, max_dist, point_w_max_dist
+    return points_data
 
 
 
@@ -177,11 +176,11 @@ for road in res:
 
 pt = None
 max_d = 0
-for city_id in range( 1,N+1 ):
-    points_data, max_dist, point_w_max_dist = deikstraSearchFast(graph, str(city_id))
-    if max_d < max_dist and point_w_max_dist != '1':
-        max_d = max_dist
-        pt = point_w_max_dist
+for city_id in range( 2,N+1 ):
+    points_data = deikstraSearchFast(graph, str(city_id))
+    if max_d < points_data['1'].dist:
+        max_d = points_data['1'].dist
+        pt = str(city_id)
 
 
 print(max_d, pt)
