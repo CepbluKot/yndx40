@@ -1,192 +1,210 @@
 #include <iostream>
-#include <vector>
+#include <fstream>
 #include <unordered_map>
-#include <queue>
+#include <vector>
+#include <cmath>
+#include <unordered_set>
 #include <limits>
 
 class Point {
 public:
-    bool visited;
-    double dist;
-    std::string from_point;
-
-    Point() : visited(false), dist(std::numeric_limits<double>::infinity()) {}
+    bool visited = false;
+    double dist = std::numeric_limits<double>::infinity();
+    std::string from_point = "";
 };
 
-void find_time_to_neighbors(
-    const std::string& origin_city,
-    const std::string& from_city,
-    double prev_time,
-    int speed,
-    const std::unordered_map<std::string, std::unordered_map<std::string, int>>& roads,
-    std::unordered_map<std::pair<std::string, std::string>, double>& times
-) {
-    if (from_city != "1") {
-        for (const auto& road : roads.at(from_city)) {
-            const std::string& to_city = road.first;
-
-            if (to_city != from_city && to_city != origin_city) {
-                if (times.find({origin_city, to_city}) == times.end()) {
-                    times[{origin_city, to_city}] = prev_time + static_cast<double>(road.second) / speed;
-
-                    find_time_to_neighbors(origin_city, to_city, times[{origin_city, to_city}], speed, roads, times);
-                }
-            }
-        }
-    }
-}
-
-std::unordered_map<std::pair<std::string, std::string>, double> time_searcher(
-    const std::unordered_map<std::string, std::unordered_map<std::string, int>>& roads,
-    const std::unordered_map<std::string, std::pair<int, int>>& city_info
-) {
-    std::unordered_map<std::pair<std::string, std::string>, double> times;
-
-    for (const auto& entry : roads) {
-        const std::string& from_city = entry.first;
-
-        if (from_city != "1") {
-            double prev_time = 0;
-            int speed = city_info.at(from_city).second;
-
-            for (const auto& road : entry.second) {
-                const std::string& to_city = road.first;
-
-                if (times.find({from_city, to_city}) == times.end()) {
-                    times[{from_city, to_city}] = city_info.at(from_city).first + static_cast<double>(road.second) / speed;
-
-                    prev_time = times[{from_city, to_city}];
-
-                    find_time_to_neighbors(from_city, to_city, prev_time, speed, roads, times);
-                }
-            }
-        }
-    }
-
-    return times;
-}
-
-std::unordered_map<std::string, Point> dijkstraSearchFast(
-    const std::unordered_map<std::string, std::unordered_map<std::string, double>>& graph,
-    const std::string& point_from
-) {
+std::unordered_map<std::string, Point> deikstraSearch( std::unordered_map<std::string, std::unordered_map<std::string, double>>& graph,  std::string& point_from) {
     std::unordered_map<std::string, Point> points_data;
-    std::priority_queue<std::pair<double, std::string>, std::vector<std::pair<double, std::string>>, std::greater<>> pts_heap;
 
-    for (const auto& entry : graph) {
+    for ( auto& point : graph) {
         Point new_point;
-
-        if (entry.first == point_from) {
-            if (entry.second.find(point_from) == entry.second.end()) {
-                new_point.dist = 0;
-            } else {
-                new_point.dist = entry.second.at(point_from);
-            }
+        if (point.first == point_from) {
+            new_point.dist = 0;
         }
-
-        points_data[entry.first] = new_point;
-        pts_heap.push({new_point.dist, entry.first});
+        points_data[point.first] = new_point;
     }
 
     bool all_pts_checked = false;
     while (!all_pts_checked) {
         all_pts_checked = true;
 
-        if (!pts_heap.empty()) {
-            all_pts_checked = false;
-
-            const std::string& curr_point = pts_heap.top().second;
-            pts_heap.pop();
-
-            if (!points_data[curr_point].visited) {
-                for (const auto& neighbor : graph.at(curr_point)) {
-                    double curr_dist = points_data[curr_point].dist + neighbor.second;
-
-                    if (curr_dist < points_data[neighbor.first].dist) {
-                        points_data[neighbor.first].dist = curr_dist;
-                        points_data[neighbor.first].from_point = curr_point;
-                        pts_heap.push({points_data[neighbor.first].dist, neighbor.first});
-                    }
-                }
-
-                points_data[curr_point].visited = true;
+        std::string curr_point;
+        for ( auto& point : points_data) {
+            if (!point.second.visited) {
+                curr_point = point.first;
+                all_pts_checked = false;
+                break;
             }
-        } else {
-            all_pts_checked = true;
+        }
+
+        if (!all_pts_checked) {
+            for ( auto& point : points_data) {
+                if (points_data[point.first].dist < points_data[curr_point].dist && !points_data[point.first].visited) {
+                    curr_point = point.first;
+                }
+            }
+
+            for ( auto& neighbor : graph.at(curr_point)) {
+                double curr_dist = points_data[curr_point].dist + graph.at(curr_point).at(neighbor);
+
+                if (curr_dist < points_data[neighbor].dist) {
+                    points_data[neighbor].dist = curr_dist;
+                    points_data[neighbor].from_point = curr_point;
+                }
+            }
+
+            points_data[curr_point].visited = true;
         }
     }
 
     return points_data;
 }
 
+void findTimeToNeighbors( std::string& origin_city,  std::string& from_city, double prev_time, int speed,  std::unordered_map<std::string, std::unordered_map<std::string, double>>& roads, std::unordered_map<std::string, std::unordered_map<std::string, double>>& times) {
+    if (from_city != "1") {
+        for ( auto& to_city : roads.at(from_city)) {
+            if (to_city != from_city && to_city != origin_city) {
+                if (times.find(origin_city) == times.end()) {
+                    times[origin_city] = {};
+                }
+                if (times[origin_city].find(to_city) == times[origin_city].end()) {
+                    times[origin_city][to_city] = prev_time + roads.at(from_city).at(to_city) / speed;
+
+                    findTimeToNeighbors(origin_city, to_city, times[origin_city][to_city], speed, roads, times);
+                }
+            }
+        }
+    }
+}
+
+std::unordered_map<std::string, std::unordered_map<std::string, double>> timeSearcher( std::unordered_map<std::string, std::unordered_map<std::string, double>>& roads,  std::unordered_map<std::string, std::pair<int, int>>& city_info) {
+    std::unordered_map<std::string, std::unordered_map<std::string, double>> times;
+
+    std::unordered_set<std::string> visited_cities;
+
+    for ( auto& from_city : roads) {
+        if (visited_cities.find(from_city.first) == visited_cities.end() && from_city.first != "1") {
+            int prep_time = city_info.at(from_city.first).first;
+            int speed = city_info.at(from_city.first).second;
+            double prev_time = 0;
+
+            for ( auto& to_city : from_city.second) {
+                if (times.find(from_city.first) == times.end()) {
+                    times[from_city.first] = {};
+                }
+                if (times[from_city.first].find(to_city.first) == times[from_city.first].end()) {
+                    times[from_city.first][to_city.first] = prep_time + from_city.second.at(to_city.first) / speed;
+
+                    prev_time = times[from_city.first][to_city.first];
+
+                    findTimeToNeighbors(from_city.first, to_city.first, prev_time, speed, roads, times);
+                }
+            }
+
+            visited_cities.insert(from_city.first);
+        }
+    }
+
+    return times;
+}
+
 int main() {
-    // Read input from file or standard input
-
+    std::ifstream file("input.txt");
     int N;
-    std::cin >> N;
+    file >> N;
 
-    std::unordered_map<std::string, std::unordered_map<std::string, int>> roads;
+    std::unordered_map<std::string, std::unordered_map<std::string, double>> roads;
     std::unordered_map<std::string, std::pair<int, int>> city_info;
 
     for (int city_id = 1; city_id <= N; ++city_id) {
         int prep_time, speed;
-        std::cin >> prep_time >> speed;
-
-        city_info[std::to_string(city_id)] = {prep_time, speed};
+        file >> prep_time >> speed;
+        city_info[std::to_string(city_id)] = std::make_pair(prep_time, speed);
     }
 
     for (int i = 0; i < N - 1; ++i) {
-        std::string from_id, to_id;
-        int dist;
+        int from_id, to_id, dist;
+        file >> from_id >> to_id >> dist;
 
-        std::cin >> from_id >> to_id >> dist;
-
-        roads[from_id][to_id] = dist;
-        roads[to_id][from_id] = dist;
-    }
-
-    // Perform time search and build the graph
-    auto res = time_searcher(roads, city_info);
-
-    std::unordered_map<std::string, std::unordered_map<std::string, double>> graph = {{"1", {}}};
-    for (const auto& road : res) {
-        const std::string& from_city = road.first.first;
-        const std::string& to_city = road.first.second;
-
-        if (graph.find(from_city) == graph.end()) {
-            graph[from_city] = {};
+        if (roads.find(std::to_string(from_id)) == roads.end()) {
+            roads[std::to_string(from_id)] = {};
         }
 
-        graph[from_city][to_city] = road.second;
+        if (roads[std::to_string(from_id)].find(std::to_string(to_id)) == roads[std::to_string(from_id)].end()) {
+            roads[std::to_string(from_id)][std::to_string(to_id)] = 0;
+        }
+
+        if (roads.find(std::to_string(to_id)) == roads.end()) {
+            roads[std::to_string(to_id)] = {};
+        }
+
+        if (roads[std::to_string(to_id)].find(std::to_string(from_id)) == roads[std::to_string(to_id)].end()) {
+            roads[std::to_string(to_id)][std::to_string(from_id)] = 0;
+        }
+
+        roads[std::to_string(from_id)][std::to_string(to_id)] = dist;
+        roads[std::to_string(to_id)][std::to_string(from_id)] = dist;
     }
 
-    // Find the maximum distance and the corresponding path
+    auto res = timeSearcher(roads, city_info);
+    std::unordered_map<std::string, std::unordered_map<std::string, double>> new_res;
+
+    std::vector<std::string> from_city_keys;
+    for ( auto& entry : res) {
+        from_city_keys.push_back(entry.first);
+    }
+
+    while (!from_city_keys.empty()) {
+        std::string from_city = from_city_keys.back();
+        from_city_keys.pop_back();
+        std::vector<std::string> to_city_keys;
+
+        for ( auto& entry : res[from_city]) {
+            to_city_keys.push_back(entry.first);
+        }
+
+        while (!to_city_keys.empty()) {
+            std::string to_city = to_city_keys.back();
+            to_city_keys.pop_back();
+
+            if (new_res.find(to_city) == new_res.end()) {
+                new_res[to_city] = {};
+            }
+
+            new_res[to_city][from_city] = res[from_city][to_city];
+            res[from_city].erase(to_city);
+        }
+    }
+
+    for (int city_id = 1; city_id <= N; ++city_id) {
+        std::string city_str = std::to_string(city_id);
+        if (new_res.find(city_str) == new_res.end()) {
+            new_res[city_str] = {};
+        }
+    }
+
     std::string max_pt;
     double max_d = 0;
-    std::unordered_map<std::string, Point> max_pts_data;
 
-    for (int city_id = 2; city_id <= N; ++city_id) {
-        std::unordered_map<std::string, Point> points_data = dijkstraSearchFast(graph, std::to_string(city_id));
-
-        if (max_d < points_data["1"].dist) {
-            max_pts_data = points_data;
-            max_d = points_data["1"].dist;
-            max_pt = std::to_string(city_id);
+    auto points_data = deikstraSearch(new_res, "1");
+    for ( auto& point : points_data) {
+        if (max_d < point.second.dist) {
+            max_d = point.second.dist;
+            max_pt = point.first;
         }
     }
 
-    // Restore and print the path
-    std::vector<std::string> restored_path = {"1"};
-    std::string curr_point = max_pts_data["1"].from_point;
-
+    std::vector<std::string> restored_path;
+    restored_path.push_back(max_pt);
+    std::string curr_point = points_data[max_pt].from_point;
     while (!curr_point.empty()) {
         restored_path.push_back(curr_point);
-        curr_point = max_pts_data[curr_point].from_point;
+        curr_point = points_data[curr_point].from_point;
     }
 
     std::cout << max_d << std::endl;
-    for (auto it = restored_path.rbegin(); it != restored_path.rend(); ++it) {
-        std::cout << *it << " ";
+    for ( auto& city : restored_path) {
+        std::cout << city << " ";
     }
 
     return 0;
