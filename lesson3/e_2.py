@@ -63,69 +63,44 @@ def deikstraSearchFast(
 
 
 def find_time_to_neighbors(origin_city, from_city, prev_time: int, speed: int, roads: dict, times: dict):
-    
+    # ! mb bug at prev_time counter 
     if from_city != '1':
         for to_city in roads[from_city]:
             if to_city != from_city and to_city != origin_city: # check if dead end
                 if (origin_city, to_city) not in times:
                     times[(origin_city, to_city)] = prev_time + roads[from_city][to_city] / speed
-                    prev_time = times[(origin_city, to_city)]
 
 
-                    find_time_to_neighbors(origin_city, to_city, prev_time, speed, roads, times)
+                    find_time_to_neighbors(origin_city, to_city, times[(origin_city, to_city)], speed, roads, times)
 
+    # return times
 
-def time_searcher(roads: dict, city_info: dict, path: dict={}, times: dict={}, end_city:int = '1', visited_end_cities: set=set()):
+def time_searcher(roads: dict, city_info: dict, times: dict={}, visited_cities: set=set()):
     # times: key = (from_city, to_city)
     
-    neighbors = roads[end_city]
+    # bfs: first step = start time + dist
+    # next ones: prev + dist
 
-    for neighbor in neighbors:
-        if neighbor != end_city and neighbor != '1' and neighbor not in visited_end_cities:
-            path[neighbor] = end_city
-
-            # checking times from neighbor to its neighbors on the end_city_side
-
-
-            # ! use find_time_to_neighbors for both directions
-
-            from_city = neighbor
-            to_city = end_city
-
+    for from_city in roads:
+        if from_city not in visited_cities and from_city != '1':
             prep_time, speed = city_info[from_city]
+            prev_time = 0
 
-            if (from_city, to_city) not in times:         
-                times[(from_city, to_city)] = prep_time + roads[from_city][to_city] / speed
-
-            prev_time = times[(from_city, to_city)]
-            
-            if to_city != '1':
-                find_time_to_neighbors(neighbor, to_city, prev_time, speed, roads, times)
-
-
-            # checking times from neighbor to its neighbors on the opposite of end_city_side
-            
-            neighbors_of_neighbor = roads[neighbor]
-            for neighbor_of_neighbor in neighbors_of_neighbor:
-                # select those, that were not visited on the way here
-                if neighbor_of_neighbor != path[neighbor] and neighbor_of_neighbor != '1':
-                    from_city = neighbor
-                    to_city = neighbor_of_neighbor
-
-                    if (from_city, to_city) not in times:
-                        times[(from_city, to_city)] = prep_time + roads[from_city][to_city] / speed
-
+            for to_city in roads[from_city]:
+                if (from_city, to_city) not in times:         
+                    times[(from_city, to_city)] = prep_time + roads[from_city][to_city] / speed
+                    
                     prev_time = times[(from_city, to_city)]
+            
+                    find_time_to_neighbors(from_city, to_city, prev_time, speed, roads, times)
 
-                    find_time_to_neighbors(neighbor, to_city, prev_time, speed, roads, times)
 
-            visited_end_cities.add(neighbor)
-            times = time_searcher(roads, city_info, path, times, end_city = neighbor, visited_end_cities=visited_end_cities)
+            visited_cities.add(from_city)
 
     return times
 
 
-f = open('/home/oleg/Documents/algo4/lesson3/input.txt')
+f = open('input.txt')
 N = f.readline()
 N = int(N)
 
