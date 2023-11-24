@@ -16,33 +16,34 @@ public:
     {}
 
     bool visited = false;
-    double dist =  std::numeric_limits<double>::max();
-    int from_point =  -1;
+    double dist = std::numeric_limits<double>::max();
+    int from_point = -1;
 };
 
-void dijkstraSearch(std::unordered_map<int, std::unordered_map<int, double>> graph, int& point_from, std::unordered_map<int, Point*>& points_data)
+std::unordered_map<int, Point> dijkstraSearch(std::unordered_map<int, std::unordered_map<int, double>>& graph, int& point_from)
 {
+    std::unordered_map<int, Point > points_data;
     for (auto &point : graph)
     {
-        points_data[point.first] = new Point();
+        points_data[point.first] = Point();
 
         if (point.first == point_from)
         {
-            points_data[point.first]->dist = 0;
+            points_data[point.first].dist = 0;
         }
     }
 
-    bool all_pts_checked =  false;
-    int curr_point ;
+    bool all_pts_checked = false;
+    int curr_point;
 
-    double curr_dist ;
+    double curr_dist;
 
     while (!all_pts_checked)
     {
         all_pts_checked = true;
         for (auto &point : points_data)
         {
-            if (!point.second->visited)
+            if (!point.second.visited)
             {
                 curr_point = point.first;
                 all_pts_checked = false;
@@ -53,8 +54,8 @@ void dijkstraSearch(std::unordered_map<int, std::unordered_map<int, double>> gra
         if (!all_pts_checked)
         {
             for (auto &point : points_data)
-            {
-                if (point.second->dist < points_data[curr_point]->dist && !point.second->visited)
+            {// wtf is here
+                if (point.second.dist < points_data[curr_point].dist && !point.second.visited)
                 {
                     curr_point = point.first;
                 }
@@ -64,29 +65,29 @@ void dijkstraSearch(std::unordered_map<int, std::unordered_map<int, double>> gra
             {
                 for (auto &neighbor : graph[curr_point])
                 {
-                    curr_dist = points_data[curr_point]->dist + graph[curr_point][neighbor.first];
+                    curr_dist = points_data[curr_point].dist + graph[curr_point][neighbor.first];
 
                     if (points_data.find(neighbor.first) == points_data.end())
                     {
-                        points_data[neighbor.first] = new Point();
+                        points_data[neighbor.first] = Point();
                     }
 
-                    if (curr_dist < points_data[neighbor.first]->dist)
+                    if (curr_dist < points_data[neighbor.first].dist)
                     {
-                        points_data[neighbor.first]->dist = curr_dist;
-                        points_data[neighbor.first]->from_point = curr_point;
+                        points_data[neighbor.first].dist = curr_dist;
+                        points_data[neighbor.first].from_point = curr_point;
                     }
                 }
             }
 
-            points_data[curr_point]->visited = true;
+            points_data[curr_point].visited = true;
         }
     }
 
-    // return points_data;
+    return points_data;
 }
 
-std::unordered_map<int, std::unordered_map<int, double>>&  find_time_to_neighbors(int origin_city, int from_city, double& prev_time, int& speed, std::unordered_map<int, std::unordered_map<int, double>>& roads, std::unordered_map<int, std::unordered_map<int, double>>& times)
+std::unordered_map<int, std::unordered_map<int, double>>  find_time_to_neighbors(int origin_city, int from_city, double& prev_time, int& speed, std::unordered_map<int, std::unordered_map<int, double>>& roads, std::unordered_map<int, std::unordered_map<int, double>>& times)
 {
     if (from_city != 1)
     {
@@ -114,7 +115,7 @@ std::unordered_map<int, std::unordered_map<int, double>>&  find_time_to_neighbor
 }
 
 
-void time_searcher(std::unordered_map<int, std::unordered_map<int, double>>& roads,  std::unordered_map<int, std::tuple<int, int>>& city_info, std::unordered_map<int, std::unordered_map<int, double>>& times, std::set<int>& visited_cities)
+std::unordered_map<int, std::unordered_map<int, double>> time_searcher(std::unordered_map<int, std::unordered_map<int, double>>& roads,  std::unordered_map<int, std::tuple<int, int>>& city_info, std::unordered_map<int, std::unordered_map<int, double>>& times, std::set<int>& visited_cities)
 {
     int prep_time = 0, speed = 0;
     double prev_time = 0;
@@ -151,7 +152,7 @@ void time_searcher(std::unordered_map<int, std::unordered_map<int, double>>& roa
         }
     }
 
-    // return times;
+    return times;
 }
 
 int NumDigits(double& x)  
@@ -229,22 +230,19 @@ int main()
     std::unordered_map<int, std::unordered_map<int, double>> times;
     std::set<int> visited_cities;
 
-    time_searcher(roads, city_info, times, visited_cities);
-    // std::unordered_map<int, std::unordered_map<int, double>> res= times;
+    std::unordered_map<int, std::unordered_map<int, double>> res = time_searcher(roads, city_info, times, visited_cities);
     // std::cout << "don this part" << std::endl;
 
     int max_pt;
     double max_d = 0;
     int strt = 1;
-    std::unordered_map<int, Point*> points_data;
-
-    dijkstraSearch(times, strt, points_data);
+    std::unordered_map<int, Point> points_data = dijkstraSearch(res, strt);
 
     for (auto &point : points_data)
     {
-        if (max_d < point.second->dist)
+        if (max_d < point.second.dist)
         {
-            max_d = point.second->dist;
+            max_d = point.second.dist;
             max_pt = point.first;
         }
     }
@@ -252,12 +250,12 @@ int main()
     std::vector<int> restored_path;
     restored_path.push_back(max_pt);
 
-    int curr_point = points_data[max_pt]->from_point;
+    int curr_point = points_data[max_pt].from_point;
 
     while (curr_point != -1)
     {
         restored_path.push_back(curr_point);
-        curr_point = points_data[curr_point]->from_point;
+        curr_point = points_data[curr_point].from_point;
     }
 
     int n = NumDigits(max_d);
