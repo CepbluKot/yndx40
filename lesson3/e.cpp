@@ -35,7 +35,7 @@ std::map<std::string, Point> dijkstraSearch(std::map<std::string, std::map<std::
     bool all_pts_checked = false;
     std::string curr_point;
 
-    int curr_dist;
+    double curr_dist;
 
     while (!all_pts_checked)
     {
@@ -238,7 +238,7 @@ int main()
     std::string curr_point = points_data[max_pt].from_point;
 
     while (curr_point != "")
-    { // what the fuck
+    {
         restored_path.push_back(curr_point);
         curr_point = points_data[curr_point].from_point;
     }
