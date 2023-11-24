@@ -14,7 +14,6 @@ def deikstraSearch(
 
 ):
     points_data = {}
-
     for point in graph:
         new_point = Point()
         if point == point_from:
@@ -38,18 +37,22 @@ def deikstraSearch(
                 if points_data[point].dist < points_data[curr_point].dist and not points_data[point].visited:
                     curr_point = point
 
-            for neighbor in graph[curr_point]:
-                curr_dist = points_data[curr_point].dist + graph[curr_point][neighbor]
+            if curr_point in graph:
+                for neighbor in graph[curr_point]:
+                    curr_dist = points_data[curr_point].dist + graph[curr_point][neighbor]
 
-                if curr_dist < points_data[neighbor].dist:
-                    points_data[neighbor].dist = curr_dist
-                    points_data[neighbor].from_point = curr_point
+                    if neighbor not in points_data:
+                        points_data[neighbor] = Point()
+
+                    if curr_dist < points_data[neighbor].dist:
+                        points_data[neighbor].dist = curr_dist
+                        points_data[neighbor].from_point = curr_point
 
             
+
             points_data[curr_point].visited = True
         
     return points_data
-
 
 
 def find_time_to_neighbors(origin_city, from_city, prev_time: int, speed: int, roads: dict, times: dict):
@@ -130,21 +133,14 @@ for _ in range( N-1 ):
 
     roads[from_id][to_id] = dist
     roads[to_id][from_id] = dist
-    
-res = time_searcher(roads, city_info)
 
-        
-for city_id in range( 1,N+1 ):
-    city_id = str(city_id)
-    if city_id not in  res:
-        res[city_id] = {}
+
+res = time_searcher(roads, city_info)
 
 max_pt = None
 max_d = 0
-
-# s = time.time()
 points_data = deikstraSearch(res, '1')
-# print(time.time() - s)
+
 for point in points_data:
     if max_d < points_data[point].dist:
 
