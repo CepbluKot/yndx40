@@ -1,5 +1,4 @@
 import math
-import heapq
 
 
 class Point:
@@ -8,7 +7,7 @@ class Point:
     from_point = None
 
 
-def deikstraSearchSlow(
+def deikstraSearch(
     graph: dict,
     point_from: str,
     point_to: str,
@@ -18,11 +17,8 @@ def deikstraSearchSlow(
     for point in graph:
         new_point = Point()
         if point == point_from:
-            if not point_from in graph[point]:
-                new_point.dist = 0
-            else:
-                new_point.dist = graph[point][point_from]
-
+            new_point.dist = 0
+        
         points_data[point] = new_point
 
     all_pts_checked = False
@@ -54,90 +50,38 @@ def deikstraSearchSlow(
     return points_data
 
 
-def deikstraSearchFast(
-    graph: dict,
-    point_from: str,
-    point_to: str,
-):
-    points_data = {}
-    
-    
-    pts_heap = []
-    heapq.heapify(pts_heap)
+N, S, F = input().split()
 
-
-    for point in graph:
-        new_point = Point()
-        if point == point_from:
-            if not point_from in graph[point]:
-                new_point.dist = 0
-            else:
-                new_point.dist = graph[point][point_from]
-        
-        points_data[point] = new_point
-        heapq.heappush(pts_heap, (new_point.dist, point))
-
-
-    all_pts_checked = False
-    while not all_pts_checked:
-        all_pts_checked = True
-        if pts_heap:
-            all_pts_checked = False
-            curr_point = heapq.heappop(pts_heap)[1]
-            if not points_data[curr_point].visited:
-                
-
-                for neighbor in graph[curr_point]:
-                    curr_dist = points_data[curr_point].dist + graph[curr_point][neighbor]
-
-                    if curr_dist < points_data[neighbor].dist:
-                        points_data[neighbor].dist = curr_dist
-                        points_data[neighbor].from_point = curr_point
-                        heapq.heappush(pts_heap, (points_data[neighbor].dist, neighbor))
-
-                
-                points_data[curr_point].visited = True
-            
-        else:
-            all_pts_checked = True
-
-    return points_data
-
-
-f = open('input.txt')
-N, K = f.readline().split()
-N, K = int(N), int(K)
 graph = {}
 
-if K:
-    for _ in range( K ):
-        from_id, to_id, length =  f.readline().split()
-        length = int(length)
-        
+for from_elem_id in range(1, int(N)+1):
+    data = list(map(str, input().split()))
 
-        if not from_id in graph:
-            graph[from_id] = {}
+    from_elem_id = str(from_elem_id)
+    if not from_elem_id in graph:
+        graph[from_elem_id] = {}
 
-        if not to_id in graph:
-            graph[to_id] = {}
-
-        graph[from_id][to_id] = length
-        graph[to_id][from_id] = length
-        
-    S, F = f.readline().split()
-
-
-    if K < N**2:
-        r = deikstraSearchFast(graph, S, F)
-    else:
-        r = deikstraSearchSlow(graph, S, F)
-
+    for to_elem_id in range(len(data)):
+        if data[to_elem_id] != '-1':
+            
+            graph[from_elem_id][str(to_elem_id + 1)] = int(data[to_elem_id])
     
-    if F in r and r[F].dist != math.inf:
-        print(r[F].dist)
 
+r = deikstraSearch(graph, S, F)
+if r[F].dist != math.inf:
+    # print(r[F].dist)
 
-    else:
-        print(-1)
+    path = [F]
+
+    curr_point = r[F]
+    while curr_point.from_point:
+        path.append(curr_point.from_point)
+        curr_point = r[curr_point.from_point]
+    
+    
+    path = path[::-1]
+    
+    print(*path)
+
 else:
     print(-1)

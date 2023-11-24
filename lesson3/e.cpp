@@ -7,7 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <iomanip>
-// #include <numbers>
+
 
 class Point
 {
@@ -17,10 +17,10 @@ public:
 
     bool visited = false;
     double dist =  std::numeric_limits<double>::max();
-    int from_point =  -1;
+    unsigned short from_point =  0;
 };
 
-void dijkstraSearch(std::unordered_map<int, std::unordered_map<int, double>> graph, int& point_from, std::unordered_map<int, Point*>& points_data)
+void dijkstraSearch(std::unordered_map<unsigned short, std::unordered_map<unsigned short, double>>& graph, unsigned short& point_from, std::unordered_map<unsigned short, Point*>& points_data)
 {
     for (auto &point : graph)
     {
@@ -33,7 +33,7 @@ void dijkstraSearch(std::unordered_map<int, std::unordered_map<int, double>> gra
     }
 
     bool all_pts_checked =  false;
-    int curr_point ;
+    unsigned short curr_point ;
 
     double curr_dist ;
 
@@ -86,7 +86,7 @@ void dijkstraSearch(std::unordered_map<int, std::unordered_map<int, double>> gra
     // return points_data;
 }
 
-std::unordered_map<int, std::unordered_map<int, double>>&  find_time_to_neighbors(int origin_city, int from_city, double& prev_time, int& speed, std::unordered_map<int, std::unordered_map<int, double>>& roads, std::unordered_map<int, std::unordered_map<int, double>>& times)
+void  find_time_to_neighbors(unsigned short origin_city, unsigned short from_city, double& prev_time, unsigned short& speed, std::unordered_map<unsigned short, std::unordered_map<unsigned short, unsigned short>>& roads, std::unordered_map<unsigned short, std::unordered_map<unsigned short, double>>& times)
 {
     if (from_city != 1)
     {
@@ -97,26 +97,26 @@ std::unordered_map<int, std::unordered_map<int, double>>&  find_time_to_neighbor
 
                 if (times.find(to_city.first) == times.end())
                 {
-                    std::unordered_map<int, double> new_clean_unordered_map;
+                    std::unordered_map<unsigned short, double> new_clean_unordered_map;
                     times[to_city.first] = new_clean_unordered_map;
                 }
 
                 if (times[to_city.first].find(origin_city) == times[to_city.first].end())
                 {
-                    times[to_city.first][origin_city] = prev_time + roads[to_city.first][from_city] / speed;
+                    times[to_city.first][origin_city] = prev_time + (double)roads[to_city.first][from_city] / (double)speed;
 
-                    times = find_time_to_neighbors(origin_city, to_city.first, times[to_city.first][origin_city], speed, roads, times);
+                    find_time_to_neighbors(origin_city, to_city.first, times[to_city.first][origin_city], speed, roads, times);
                 }
             }
         }
     }
-    return times;
+    // return times;
 }
 
 
-void time_searcher(std::unordered_map<int, std::unordered_map<int, double>>& roads,  std::unordered_map<int, std::tuple<int, int>>& city_info, std::unordered_map<int, std::unordered_map<int, double>>& times, std::set<int>& visited_cities)
+void time_searcher(std::unordered_map<unsigned short, std::unordered_map<unsigned short, unsigned short>>& roads,  std::unordered_map<unsigned short, std::tuple<unsigned short, unsigned short>>& city_info, std::unordered_map<unsigned short, std::unordered_map<unsigned short, double>>& times, std::set<unsigned short>& visited_cities)
 {
-    int prep_time = 0, speed = 0;
+    unsigned short prep_time = 0, speed = 0;
     double prev_time = 0;
     for (auto &from_city : roads)
     {
@@ -132,17 +132,17 @@ void time_searcher(std::unordered_map<int, std::unordered_map<int, double>>& roa
             {
                 if ( times.find(to_city.first) == times.end() )
                 {
-                    std::unordered_map<int, double> new_clean_unordered_map;
+                    std::unordered_map<unsigned short, double> new_clean_unordered_map;
                     times[to_city.first] = new_clean_unordered_map;
                 }
 
                 if ( times[to_city.first].find(from_city.first) == times[to_city.first].end() )
                 {
-                    times[to_city.first][from_city.first] = prep_time + roads[to_city.first][from_city.first] / speed;
+                    times[to_city.first][from_city.first] = prep_time + (double)roads[to_city.first][from_city.first] / (double)speed;
 
                     prev_time = times[to_city.first][from_city.first];
 
-                    times = find_time_to_neighbors(from_city.first, to_city.first, prev_time, speed, roads, times);
+                    find_time_to_neighbors(from_city.first, to_city.first, prev_time, speed, roads, times);
 
                 }
             }
@@ -172,27 +172,27 @@ int main()
 {
     std::ifstream f;
     f.open("input.txt");
-    int N;
+    unsigned short N;
     f >> N;
 
-    std::unordered_map<int, std::unordered_map<int, double>> roads;
-    std::unordered_map<int, std::tuple<int, int>> city_info;
+    std::unordered_map<unsigned short, std::unordered_map<unsigned short, unsigned short>> roads;
+    std::unordered_map<unsigned short, std::tuple<unsigned short, unsigned short>> city_info;
 
-    int prep_time, speed;
+    unsigned short prep_time, speed;
 
-    for ( int city_id = 1; city_id < N+1; city_id++)
+    for ( unsigned short city_id = 1; city_id < N+1; city_id++)
     {
         f >> prep_time >> speed;
 
-        std::tuple<int, int> sample_tuple(prep_time, speed);
+        std::tuple<unsigned short, unsigned short> sample_tuple(prep_time, speed);
         city_info[city_id] = sample_tuple;
 
     }
 
-    int from_id, to_id, dist;
-    int dist_int;
+    unsigned short from_id, to_id, dist;
+    unsigned short dist_int;
 
-    for ( int i = 1; i <= N-1; i++)
+    for ( unsigned short i = 1; i <= N-1; i++)
     {
         f >> from_id >> to_id >> dist;
 
@@ -200,7 +200,7 @@ int main()
 
         if ( roads.find(from_id) == roads.end())
         {
-            std::unordered_map<int, double> clean_roads_unordered_map;
+            std::unordered_map<unsigned short, unsigned short> clean_roads_unordered_map;
             roads[from_id] = clean_roads_unordered_map;
         }
 
@@ -211,7 +211,7 @@ int main()
 
         if (roads.find(to_id) == roads.end())
         {
-            std::unordered_map<int, double> clean_roads_unordered_map;
+            std::unordered_map<unsigned short, unsigned short> clean_roads_unordered_map;
             roads[to_id] = clean_roads_unordered_map;
         }
 
@@ -226,17 +226,19 @@ int main()
 
 
 
-    std::unordered_map<int, std::unordered_map<int, double>> times;
-    std::set<int> visited_cities;
+    std::unordered_map<unsigned short, std::unordered_map<unsigned short, double>> times;
+    std::set<unsigned short> visited_cities;
 
     time_searcher(roads, city_info, times, visited_cities);
-    // std::unordered_map<int, std::unordered_map<int, double>> res= times;
+    // std::unordered_map<int, std::unordered_map<int, float>> res= times;
     // std::cout << "don this part" << std::endl;
 
-    int max_pt;
+    unsigned short max_pt;
     double max_d = 0;
-    int strt = 1;
-    std::unordered_map<int, Point*> points_data;
+    unsigned short strt = 1;
+    std::unordered_map<unsigned short, Point*> points_data;
+
+
 
     dijkstraSearch(times, strt, points_data);
 
@@ -249,23 +251,23 @@ int main()
         }
     }
 
-    std::vector<int> restored_path;
+    std::vector<unsigned short> restored_path;
     restored_path.push_back(max_pt);
 
-    int curr_point = points_data[max_pt]->from_point;
+    unsigned short curr_point = points_data[max_pt]->from_point;
 
-    while (curr_point != -1)
+    while (curr_point != 0)
     {
         restored_path.push_back(curr_point);
         curr_point = points_data[curr_point]->from_point;
     }
 
-    int n = NumDigits(max_d);
+    unsigned short n = NumDigits(max_d);
 
     std::cout << std::setprecision(n+4) << max_d  << std::endl;
     // std::cout << max_d  << std::endl;
 
-    for (int i = 0 ; i < restored_path.size() - 1; i++)
+    for (unsigned short i = 0 ; i < restored_path.size() - 1; i++)
     {
         std::cout << restored_path[i] << " ";
     }

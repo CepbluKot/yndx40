@@ -42,7 +42,7 @@ def deikstraSearch(
 
                 if curr_dist < points_data[neighbor].dist:
                     points_data[neighbor].dist = curr_dist
-                    points_data[neighbor].from_point = curr_point
+                    points_data[neighbor].point_from = curr_point
 
             
             points_data[curr_point].visited = True
@@ -69,20 +69,6 @@ for from_elem_id in range(1, int(N)+1):
 
 r = deikstraSearch(graph, S, F)
 if r[F].dist != math.inf:
-    # print(r[F].dist)
-
-    path = [F]
-
-    curr_point = r[F]
-    while curr_point.from_point:
-        path.append(curr_point.from_point)
-        curr_point = r[curr_point.from_point]
-    
-    
-    path = path[::-1]
-    
-    print(*path)
-
+    print(r[F].dist)
 else:
     print(-1)
-    
